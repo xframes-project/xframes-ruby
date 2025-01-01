@@ -197,7 +197,11 @@ class Node
 
 module XFrames
   extend FFI::Library
-  ffi_lib './libxframesshared.so'
+  if RUBY_PLATFORM =~ /win32|mingw|cygwin/
+    ffi_lib './xframesshared.dll'
+  else
+    ffi_lib './libxframesshared.so'
+  end
 
   # Define callback types
   callback :OnInitCb, [:pointer], :void
