@@ -2,7 +2,6 @@ require 'ffi'
 require 'json'
 require 'eventmachine'
 
-# ImGui colors as per your original mapping
 ImGuiCol = {
   Text: 0,
   TextDisabled: 1,
@@ -132,39 +131,28 @@ theme2 = {
     }
 }
 
-# Generate font definitions
 base_font_defs = {
   defs: [
     { name: "roboto-regular", sizes: [16, 18, 20, 24, 28, 32, 36, 48] }
   ]
 }
 
-# Generate font size pairs
 font_size_pairs = base_font_defs[:defs].flat_map { |font|
   font[:sizes].map { |size| { name: font[:name], size: size } }
 }
 
-# JSON for font_defs and theme
 font_defs_json = JSON.pretty_generate(defs: font_size_pairs)
 theme_json = JSON.pretty_generate(theme2)
-
-# Print the generated JSON for font definitions and theme
-# puts "Font Definitions JSON:"
-# puts font_defs_json
-# puts "\nTheme JSON:"
-# puts theme_json
 
 class Node
     attr_accessor :id, :root
   
-    # Initialize method to set the values for type and id
     def initialize(id, root)
       @type = 'node'
       @id = id
       @root = root
     end
   
-    # Convert the object to JSON
     def to_json(*options)
       {
         type: @type,
@@ -177,14 +165,12 @@ class Node
   class UnformattedText
       attr_accessor :id, :text
     
-      # Initialize method to set the values for type and id
       def initialize(id, text)
         @type = 'unformatted-text'
         @id = id
         @text = text
       end
     
-      # Convert the object to JSON
       def to_json(*options)
         {
           type: @type,
@@ -230,7 +216,6 @@ module XFrames
   attach_function :setChildren, [:int, :string], :void
 end
 
-# Callback implementations
 on_init = FFI::Function.new(:void, []) do
   puts "OnInit called!"
 
