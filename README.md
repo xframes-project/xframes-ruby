@@ -24,3 +24,9 @@ I recommend to install Ruby via [Scoop](https://scoop.sh/), then
 ### Run the application
 
 `ruby main.rb`
+
+## Screenshots
+
+Windows 11
+
+![image](https://github.com/user-attachments/assets/2ddc2f41-5310-4f4c-a850-71c3edead95b)
