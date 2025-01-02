@@ -1,4 +1,6 @@
+require 'ffi'
 require 'json'
+require 'eventmachine'
 
 # ImGui colors as per your original mapping
 ImGuiCol = {
@@ -151,3 +153,135 @@ theme_json = JSON.pretty_generate(theme2)
 # puts font_defs_json
 # puts "\nTheme JSON:"
 # puts theme_json
+
+class Node
+    attr_accessor :id, :root
+  
+    # Initialize method to set the values for type and id
+    def initialize(id, root)
+      @type = 'node'
+      @id = id
+      @root = root
+    end
+  
+    # Convert the object to JSON
+    def to_json(*options)
+      {
+        type: @type,
+        id: @id,
+        root: @root
+      }.to_json(*options)
+    end
+  end
+
+  class UnformattedText
+      attr_accessor :id, :text
+    
+      # Initialize method to set the values for type and id
+      def initialize(id, text)
+        @type = 'unformatted-text'
+        @id = id
+        @text = text
+      end
+    
+      # Convert the object to JSON
+      def to_json(*options)
+        {
+          type: @type,
+          id: @id,
+          text: @text
+        }.to_json(*options)
+      end
+    end
+
+
+module XFrames
+  extend FFI::Library
+  ffi_lib './libxframesshared.so'
+
+  # Define callback types
+  callback :OnInitCb, [:pointer], :void
+  callback :OnTextChangedCb, [:int, :string], :void
+  callback :OnComboChangedCb, [:int, :int], :void
+  callback :OnNumericValueChangedCb, [:int, :float], :void
+  callback :OnBooleanValueChangedCb, [:int, :int], :void
+  callback :OnMultipleNumericValuesChangedCb, [:int, :pointer, :int], :void
+  callback :OnClickCb, [:int], :void
+
+  attach_function :init, [
+    :string,        # assetsBasePath
+    :string,        # rawFontDefinitions
+    :string,        # rawStyleOverrideDefinitions
+    :OnInitCb,
+    :OnTextChangedCb,
+    :OnComboChangedCb,
+    :OnNumericValueChangedCb,
+    :OnBooleanValueChangedCb,
+    :OnMultipleNumericValuesChangedCb,
+    :OnClickCb
+  ], :void
+
+  attach_function :setElement, [:string], :void
+
+  attach_function :setChildren, [:int, :string], :void
+end
+
+# Callback implementations
+on_init = FFI::Function.new(:void, []) do
+  puts "OnInit called!"
+
+  node = Node.new(0, true)
+  unformatted_text = UnformattedText.new(1, "Hello, world")
+
+  children_ids = [1]
+
+  XFrames.setElement(node.to_json)
+  XFrames.setElement(unformatted_text.to_json)
+
+  XFrames.setChildren(0, children_ids.to_json)
+end
+
+on_text_changed = FFI::Function.new(:void, [:int, :string]) do |id, text|
+  puts "Text changed: ID=#{id}, Text=#{text}"
+end
+
+on_combo_changed = FFI::Function.new(:void, [:int, :int]) do |id, selected_index|
+  puts "Combo changed: ID=#{id}, Selected=#{selected_index}"
+end
+
+on_numeric_value_changed = FFI::Function.new(:void, [:int, :float]) do |id, value|
+  puts "Numeric value changed: ID=#{id}, Value=#{value}"
+end
+
+on_boolean_value_changed = FFI::Function.new(:void, [:int, :int]) do |id, state|
+  puts "Boolean value changed: ID=#{id}, State=#{state}"
+end
+
+on_multiple_numeric_values_changed = FFI::Function.new(:void, [:int, :pointer, :int]) do |id, values_ptr, num_values|
+  # Dereference the float array (you may need additional code to handle this)
+  puts "Multiple numeric values changed: ID=#{id}, NumValues=#{num_values}"
+end
+
+on_click = FFI::Function.new(:void, [:int]) do |id|
+  puts "Button clicked: ID=#{id}"
+end
+
+# Call init with callbacks
+assets_base_path = './assets'
+XFrames.init(
+  assets_base_path,
+  font_defs_json,
+  theme_json,
+  on_init,
+  on_text_changed,
+  on_combo_changed,
+  on_numeric_value_changed,
+  on_boolean_value_changed,
+  on_multiple_numeric_values_changed,
+  on_click
+)
+
+EM.run do
+  EM.add_periodic_timer(1) {  }
+end
+
