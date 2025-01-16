@@ -30,3 +30,8 @@ I recommend to install Ruby via [Scoop](https://scoop.sh/), then
 Windows 11
 
 ![image](https://github.com/user-attachments/assets/2ddc2f41-5310-4f4c-a850-71c3edead95b)
+
+Raspberry Pi 5
+
+![image](https://github.com/user-attachments/assets/190f8603-a6db-45c6-a5f0-cfd4dc1b87e2)
+
