@@ -275,7 +275,7 @@ class BorderStyle
     @thickness = thickness
   end
 
-  def to_dict
+  def to_hash
     out = { 'color' => @color }
 
     out['thickness'] = @thickness if @thickness
@@ -325,52 +325,52 @@ class YogaStyle
     @max_height = max_height
   end
 
-  def to_dict
+  def to_hash
     out = {}
 
-    add_to_dict(out, 'direction', @direction)
-    add_to_dict(out, 'flexDirection', @flex_direction)
-    add_to_dict(out, 'justifyContent', @justify_content)
-    add_to_dict(out, 'alignContent', @align_content)
-    add_to_dict(out, 'alignItems', @align_items)
-    add_to_dict(out, 'alignSelf', @align_self)
-    add_to_dict(out, 'positionType', @position_type)
-    add_to_dict(out, 'flexWrap', @flex_wrap)
-    add_to_dict(out, 'overflow', @overflow)
-    add_to_dict(out, 'display', @display)
-    add_to_dict(out, 'flex', @flex)
-    add_to_dict(out, 'flexGrow', @flex_grow)
-    add_to_dict(out, 'flexShrink', @flex_shrink)
-    add_to_dict(out, 'flexBasis', @flex_basis)
-    add_to_dict(out, 'flexBasisPercent', @flex_basis_percent)
-    add_to_dict_with_edges(out, 'position', @position)
-    add_to_dict_with_edges(out, 'margin', @margin)
-    add_to_dict_with_edges(out, 'padding', @padding)
-    add_to_dict_with_gutters(out, 'gap', @gap)
-    add_to_dict(out, 'aspectRatio', @aspect_ratio)
-    add_to_dict(out, 'width', @width)
-    add_to_dict(out, 'minWidth', @min_width)
-    add_to_dict(out, 'maxWidth', @max_width)
-    add_to_dict(out, 'height', @height)
-    add_to_dict(out, 'minHeight', @min_height)
-    add_to_dict(out, 'maxHeight', @max_height)
+    add_to_hash(out, 'direction', @direction)
+    add_to_hash(out, 'flexDirection', @flex_direction)
+    add_to_hash(out, 'justifyContent', @justify_content)
+    add_to_hash(out, 'alignContent', @align_content)
+    add_to_hash(out, 'alignItems', @align_items)
+    add_to_hash(out, 'alignSelf', @align_self)
+    add_to_hash(out, 'positionType', @position_type)
+    add_to_hash(out, 'flexWrap', @flex_wrap)
+    add_to_hash(out, 'overflow', @overflow)
+    add_to_hash(out, 'display', @display)
+    add_to_hash(out, 'flex', @flex)
+    add_to_hash(out, 'flexGrow', @flex_grow)
+    add_to_hash(out, 'flexShrink', @flex_shrink)
+    add_to_hash(out, 'flexBasis', @flex_basis)
+    add_to_hash(out, 'flexBasisPercent', @flex_basis_percent)
+    add_to_hash_with_edges(out, 'position', @position)
+    add_to_hash_with_edges(out, 'margin', @margin)
+    add_to_hash_with_edges(out, 'padding', @padding)
+    add_to_hash_with_gutters(out, 'gap', @gap)
+    add_to_hash(out, 'aspectRatio', @aspect_ratio)
+    add_to_hash(out, 'width', @width)
+    add_to_hash(out, 'minWidth', @min_width)
+    add_to_hash(out, 'maxWidth', @max_width)
+    add_to_hash(out, 'height', @height)
+    add_to_hash(out, 'minHeight', @min_height)
+    add_to_hash(out, 'maxHeight', @max_height)
 
     out
   end
 
   private
 
-  def add_to_dict(hash, key, value)
+  def add_to_hash(hash, key, value)
     hash[key] = value unless value.nil?
   end
 
-  def add_to_dict_with_edges(hash, key, value)
+  def add_to_hash_with_edges(hash, key, value)
     return if value.nil?
 
     hash[key] = value.transform_keys(&:to_s) if value.is_a?(Hash)
   end
 
-  def add_to_dict_with_gutters(hash, key, value)
+  def add_to_hash_with_gutters(hash, key, value)
     return if value.nil?
 
     hash[key] = value.transform_keys(&:to_s) if value.is_a?(Hash)
