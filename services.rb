@@ -94,11 +94,6 @@ class WidgetRegistrationService
     element_internal_op(widget_id, data_json)
   end
 
-  def reset_data(widget_id, data)
-    data_json = data.to_json
-    element_internal_op(widget_id, data_json)
-  end
-
   def append_data_to_plot_line(widget_id, x, y)
     plot_data = { x: x, y: y }
     element_internal_op(widget_id, plot_data.to_json)
