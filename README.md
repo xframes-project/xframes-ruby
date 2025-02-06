@@ -10,6 +10,7 @@ I recommend to install Ruby via [Scoop](https://scoop.sh/), then
 
 - `gem install ffi`
 - `gem install eventmachine`
+- `gem install rxruby`
 
 `RUBY_DLL_PATH` must be set:
 
@@ -20,6 +21,7 @@ I recommend to install Ruby via [Scoop](https://scoop.sh/), then
 - `sudo apt install ruby-full`
 - `sudo gem install ffi`
 - `sudo gem install eventmachine`
+- `sudo gem install rxruby`
 
 ### Run the application
 
