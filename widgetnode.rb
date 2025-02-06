@@ -1,13 +1,11 @@
-require 'rxruby'
+require 'rx'
 require 'json'
 require_relative 'theme'
 require_relative 'widgettypes'
 
 class BaseComponent
-  include Rx::Reactive
-
   def initialize(props)
-    @props = BehaviorSubject.new(props)
+    @props = Rx::BehaviorSubject.new(props)
   end
 
   # Abstract method to be overridden
@@ -21,8 +19,8 @@ class WidgetNode
 
   def initialize(type, props = {}, children = [])
     @type = type
-    @props = BehaviorSubject.new(props)
-    @children = BehaviorSubject.new(children)
+    @props = Rx::BehaviorSubject.new(props)
+    @children = Rx::BehaviorSubject.new(children)
   end
 end
 
@@ -101,20 +99,3 @@ def button(label, on_click = nil, style = nil)
   widget_node_factory(WidgetTypes::Button, props, [])
 end
 
-# JSON Encoder for RawChildlessWidgetNodeWithId
-class RawChildlessWidgetNodeWithIdEncoder < JSON::Generator::GeneratorMethods::Object
-  def self.generate(obj)
-    case obj
-    when Enum
-      obj.value
-    when Proc
-      nil
-    when WidgetStyleDef
-      obj.to_dict
-    when NodeStyleDef
-      obj.to_dict
-    else
-      super(obj)
-    end
-  end
-end
