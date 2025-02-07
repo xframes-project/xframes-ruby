@@ -40,7 +40,7 @@ class RawChildlessWidgetNodeWithId
     }
 
     @props.each do |key, value|
-      out[key] = value unless value.is_a?(Proc)
+      out[key] = value unless value.is_a?(Proc) || value.is_a?(WidgetStyleDef) || value.is_a?(NodeStyleDef)
     end
 
     out
@@ -72,21 +72,21 @@ def root_node(children, style = nil)
   props = init_props_with_style(style)
   props['root'] = true
 
-  widget_node_factory(WidgetTypes::Node, props, children)
+  widget_node_factory(WidgetTypes[:Node], props, children)
 end
 
 def node(children, style = nil)
   props = init_props_with_style(style)
   props['root'] = false
 
-  widget_node_factory(WidgetTypes::Node, props, children)
+  widget_node_factory(WidgetTypes[:Node], props, children)
 end
 
 def unformatted_text(text, style = nil)
   props = init_props_with_style(style)
   props['text'] = text
 
-  widget_node_factory(WidgetTypes::UnformattedText, props, [])
+  widget_node_factory(WidgetTypes[:UnformattedText], props, [])
 end
 
 def button(label, on_click = nil, style = nil)
@@ -96,6 +96,6 @@ def button(label, on_click = nil, style = nil)
   props['label'] = label
   props['on_click'] = on_click if on_click
 
-  widget_node_factory(WidgetTypes::Button, props, [])
+  widget_node_factory(WidgetTypes[:Button], props, [])
 end
 

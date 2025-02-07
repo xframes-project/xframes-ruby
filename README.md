@@ -18,9 +18,11 @@ Then install the dependencies (you likely need to close all terminals first):
 - `gem install eventmachine`
 - `gem install rx`
 
-`RUBY_DLL_PATH` must be set:
+`RUBY_DLL_PATH` must be set, e.g.:
 
 `$env:RUBY_DLL_PATH="C:\dev\xframes-ruby"`
+
+For convenience, you may launch `main.bat` or `main.ps1` depending on whether you are using a regular command line or PowerShell.
 
 #### Linux
 

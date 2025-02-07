@@ -1,5 +1,7 @@
 require 'ffi'
 require 'json'
+require 'thread'
+require 'concurrent-ruby'
 require 'eventmachine'
 require_relative 'theme'
 require_relative 'sampleapp'
@@ -93,55 +95,59 @@ font_defs_json = JSON.pretty_generate(defs: font_size_pairs)
 theme_json = JSON.pretty_generate(theme2)
 
 class Node
-    attr_accessor :id, :root
-  
-    def initialize(id, root)
-      @type = 'node'
-      @id = id
-      @root = root
-    end
-  
-    def to_json(*options)
-      {
-        type: @type,
-        id: @id,
-        root: @root
-      }.to_json(*options)
-    end
+  attr_accessor :id, :root
+
+  def initialize(id, root)
+    @type = 'node'
+    @id = id
+    @root = root
   end
 
-  class UnformattedText
-      attr_accessor :id, :text
-    
-      def initialize(id, text)
-        @type = 'unformatted-text'
-        @id = id
-        @text = text
-      end
-    
-      def to_json(*options)
-        {
-          type: @type,
-          id: @id,
-          text: @text
-        }.to_json(*options)
-      end
-    end
+  def to_json(*options)
+    {
+      type: @type,
+      id: @id,
+      root: @root
+    }.to_json(*options)
+  end
+end
 
+class UnformattedText
+  attr_accessor :id, :text
 
+  def initialize(id, text)
+    @type = 'unformatted-text'
+    @id = id
+    @text = text
+  end
+
+  def to_json(*options)
+    {
+      type: @type,
+      id: @id,
+      text: @text
+    }.to_json(*options)
+  end
+end
+
+service = WidgetRegistrationService.new
+shadow_node_traversal_helper = ShadowNodeTraversalHelper.new(service)
 
 on_init = FFI::Function.new(:void, []) do
-  puts "OnInit called!"
+  # Create an Async task using concurrent-ruby's Async
+  # Concurrent::Async.perform do
+    # Thread.main do
+      puts "OnInit called!"
 
-  node = Node.new(0, true)
-  unformatted_text = UnformattedText.new(1, "Hello, world")
+      root = Root.new()
 
-  children_ids = [1]
+      puts "After root creation"
 
-  XFrames.setElement(node.to_json)
-  XFrames.setElement(unformatted_text.to_json)
+      shadow_node_traversal_helper.traverse_tree(root)
 
-  XFrames.setChildren(0, children_ids.to_json)
+      puts "After tree"
+    # end
+  # end
 end
 
 on_text_changed = FFI::Function.new(:void, [:int, :string]) do |id, text|

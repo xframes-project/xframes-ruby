@@ -10,7 +10,7 @@ class WidgetRegistrationService
     @id_event_registration_lock = Mutex.new
 
     @events_subject = Rx::ReplaySubject.new(10)
-    @events_subject.debounce(0.001).subscribe { |fn| fn.call }
+    # @events_subject.debounce(0.001).subscribe { |fn| fn.call }
 
     @widget_registry = {}
     @on_click_registry = Rx::BehaviorSubject.new({})
@@ -65,7 +65,7 @@ class WidgetRegistrationService
   end
 
   def create_widget(widget)
-    widget_json = widget.to_serializable_dict.to_json
+    widget_json = widget.to_serializable_hash.to_json
     set_element(widget_json)
   end
 
