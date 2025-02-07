@@ -1,63 +1,13 @@
 require 'ffi'
 require 'json'
+require 'thread'
+require 'concurrent-ruby'
 require 'eventmachine'
-
-ImGuiCol = {
-  Text: 0,
-  TextDisabled: 1,
-  WindowBg: 2,
-  ChildBg: 3,
-  PopupBg: 4,
-  Border: 5,
-  BorderShadow: 6,
-  FrameBg: 7,
-  FrameBgHovered: 8,
-  FrameBgActive: 9,
-  TitleBg: 10,
-  TitleBgActive: 11,
-  TitleBgCollapsed: 12,
-  MenuBarBg: 13,
-  ScrollbarBg: 14,
-  ScrollbarGrab: 15,
-  ScrollbarGrabHovered: 16,
-  ScrollbarGrabActive: 17,
-  CheckMark: 18,
-  SliderGrab: 19,
-  SliderGrabActive: 20,
-  Button: 21,
-  ButtonHovered: 22,
-  ButtonActive: 23,
-  Header: 24,
-  HeaderHovered: 25,
-  HeaderActive: 26,
-  Separator: 27,
-  SeparatorHovered: 28,
-  SeparatorActive: 29,
-  ResizeGrip: 30,
-  ResizeGripHovered: 31,
-  ResizeGripActive: 32,
-  Tab: 33,
-  TabHovered: 34,
-  TabActive: 35,
-  TabUnfocused: 36,
-  TabUnfocusedActive: 37,
-  PlotLines: 38,
-  PlotLinesHovered: 39,
-  PlotHistogram: 40,
-  PlotHistogramHovered: 41,
-  TableHeaderBg: 42,
-  TableBorderStrong: 43,
-  TableBorderLight: 44,
-  TableRowBg: 45,
-  TableRowBgAlt: 46,
-  TextSelectedBg: 47,
-  DragDropTarget: 48,
-  NavHighlight: 49,
-  NavWindowingHighlight: 50,
-  NavWindowingDimBg: 51,
-  ModalWindowDimBg: 52,
-  COUNT: 53
-}
+require_relative 'theme'
+require_relative 'sampleapp'
+require_relative 'services'
+require_relative 'treetraversal'
+require_relative 'xframes'
 
 # Colors for theme generation
 theme2Colors = {
@@ -144,90 +94,13 @@ font_size_pairs = base_font_defs[:defs].flat_map { |font|
 font_defs_json = JSON.pretty_generate(defs: font_size_pairs)
 theme_json = JSON.pretty_generate(theme2)
 
-class Node
-    attr_accessor :id, :root
-  
-    def initialize(id, root)
-      @type = 'node'
-      @id = id
-      @root = root
-    end
-  
-    def to_json(*options)
-      {
-        type: @type,
-        id: @id,
-        root: @root
-      }.to_json(*options)
-    end
-  end
-
-  class UnformattedText
-      attr_accessor :id, :text
-    
-      def initialize(id, text)
-        @type = 'unformatted-text'
-        @id = id
-        @text = text
-      end
-    
-      def to_json(*options)
-        {
-          type: @type,
-          id: @id,
-          text: @text
-        }.to_json(*options)
-      end
-    end
-
-
-module XFrames
-  extend FFI::Library
-  if RUBY_PLATFORM =~ /win32|mingw|cygwin/
-    ffi_lib './xframesshared.dll'
-  else
-    ffi_lib './libxframesshared.so'
-  end
-
-  # Define callback types
-  callback :OnInitCb, [:pointer], :void
-  callback :OnTextChangedCb, [:int, :string], :void
-  callback :OnComboChangedCb, [:int, :int], :void
-  callback :OnNumericValueChangedCb, [:int, :float], :void
-  callback :OnBooleanValueChangedCb, [:int, :int], :void
-  callback :OnMultipleNumericValuesChangedCb, [:int, :pointer, :int], :void
-  callback :OnClickCb, [:int], :void
-
-  attach_function :init, [
-    :string,        # assetsBasePath
-    :string,        # rawFontDefinitions
-    :string,        # rawStyleOverrideDefinitions
-    :OnInitCb,
-    :OnTextChangedCb,
-    :OnComboChangedCb,
-    :OnNumericValueChangedCb,
-    :OnBooleanValueChangedCb,
-    :OnMultipleNumericValuesChangedCb,
-    :OnClickCb
-  ], :void
-
-  attach_function :setElement, [:string], :void
-
-  attach_function :setChildren, [:int, :string], :void
-end
+service = WidgetRegistrationService.new
+shadow_node_traversal_helper = ShadowNodeTraversalHelper.new(service)
 
 on_init = FFI::Function.new(:void, []) do
-  puts "OnInit called!"
+    root = Root.new()
 
-  node = Node.new(0, true)
-  unformatted_text = UnformattedText.new(1, "Hello, world")
-
-  children_ids = [1]
-
-  XFrames.setElement(node.to_json)
-  XFrames.setElement(unformatted_text.to_json)
-
-  XFrames.setChildren(0, children_ids.to_json)
+    shadow_node_traversal_helper.traverse_tree(root)
 end
 
 on_text_changed = FFI::Function.new(:void, [:int, :string]) do |id, text|
@@ -252,6 +125,8 @@ on_multiple_numeric_values_changed = FFI::Function.new(:void, [:int, :pointer, :
 end
 
 on_click = FFI::Function.new(:void, [:int]) do |id|
+  service.dispatch_on_click_event(id)
+
   puts "Button clicked: ID=#{id}"
 end
 

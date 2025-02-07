@@ -57,5 +57,7 @@ build-iPhoneSimulator/
 
 *.dll
 *.so
+*.exp
+*.lib
 
 .vscode
