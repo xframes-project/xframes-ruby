@@ -65,7 +65,7 @@ class WidgetRegistrationService
   end
 
   def create_widget(widget)
-    widget_json = widget.to_serializable_hash.to_json
+    widget_json = widget.to_hash.to_json
     set_element(widget_json)
   end
 

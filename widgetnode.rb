@@ -33,14 +33,20 @@ class RawChildlessWidgetNodeWithId
     @props = props
   end
 
-  def to_serializable_hash
+  def to_hash
     out = {
       'id' => @id,
       'type' => @type.to_s
     }
 
     @props.each do |key, value|
-      out[key] = value unless value.is_a?(Proc) || value.is_a?(WidgetStyleDef) || value.is_a?(NodeStyleDef)
+      unless value.is_a?(Proc) 
+        if (value.is_a?(WidgetStyleDef) || value.is_a?(NodeStyleDef))
+          out[key] = value.to_hash
+        else
+          out[key] = value
+        end
+      end
     end
 
     out

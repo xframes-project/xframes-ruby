@@ -102,54 +102,32 @@ class ShadowNodeTraversalHelper
   end
 
   def traverse_tree(renderable)
-    puts "a"
-
     if renderable.is_a?(BaseComponent)
-      puts "b"
       rendered_child = renderable.render
       shadow_child = traverse_tree(rendered_child)
-      puts "c"
       id = @widget_registration_service.get_next_component_id
-      puts "d"
       shadow_node = ShadowNode.new(id, renderable)
-      puts "e"
       shadow_node.children = [shadow_child]
-      puts "f"
       # shadow_node.current_props = renderable.props.value
-      puts "g"
       subscribe_to_props_helper(shadow_node)
-      puts "h"
       return shadow_node
     elsif renderable.is_a?(WidgetNode)
-      puts "i"
       id = @widget_registration_service.get_next_widget_id
-      puts "j"
       raw_node = create_raw_childless_widget_node_with_id(id, renderable)
-      puts "k"
       handle_widget_node(raw_node)
-      puts "l"
       @widget_registration_service.create_widget(raw_node)
-      puts "m"
 
       shadow_node = ShadowNode.new(id, renderable)
-      puts "n"
       shadow_node.children = renderable.children.value.map { |child| traverse_tree(child) }
-      puts "o"
       shadow_node.current_props = renderable.props.value
-      puts "p"
 
       linkable_children = shadow_node.get_linkable_children
-      puts "q"
       if !linkable_children.empty?
-        puts "r"
         @widget_registration_service.link_children(id, linkable_children.map(&:id))
       end
 
-      puts "s"
-
       subscribe_to_props_helper(shadow_node)
 
-      puts "t"
       return shadow_node
     else
       raise 'Unrecognised renderable'
