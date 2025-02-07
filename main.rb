@@ -94,60 +94,13 @@ font_size_pairs = base_font_defs[:defs].flat_map { |font|
 font_defs_json = JSON.pretty_generate(defs: font_size_pairs)
 theme_json = JSON.pretty_generate(theme2)
 
-class Node
-  attr_accessor :id, :root
-
-  def initialize(id, root)
-    @type = 'node'
-    @id = id
-    @root = root
-  end
-
-  def to_json(*options)
-    {
-      type: @type,
-      id: @id,
-      root: @root
-    }.to_json(*options)
-  end
-end
-
-class UnformattedText
-  attr_accessor :id, :text
-
-  def initialize(id, text)
-    @type = 'unformatted-text'
-    @id = id
-    @text = text
-  end
-
-  def to_json(*options)
-    {
-      type: @type,
-      id: @id,
-      text: @text
-    }.to_json(*options)
-  end
-end
-
 service = WidgetRegistrationService.new
 shadow_node_traversal_helper = ShadowNodeTraversalHelper.new(service)
 
 on_init = FFI::Function.new(:void, []) do
-  # Create an Async task using concurrent-ruby's Async
-  # Concurrent::Async.perform do
-    # Thread.main do
-      puts "OnInit called!"
+    root = Root.new()
 
-      root = Root.new()
-
-      puts "After root creation"
-
-      shadow_node_traversal_helper.traverse_tree(root)
-
-      puts "After tree"
-    # end
-  # end
+    shadow_node_traversal_helper.traverse_tree(root)
 end
 
 on_text_changed = FFI::Function.new(:void, [:int, :string]) do |id, text|
@@ -172,6 +125,8 @@ on_multiple_numeric_values_changed = FFI::Function.new(:void, [:int, :pointer, :
 end
 
 on_click = FFI::Function.new(:void, [:int]) do |id|
+  service.dispatch_on_click_event(id)
+
   puts "Button clicked: ID=#{id}"
 end
 

@@ -3,15 +3,25 @@ require 'rx'
 require 'thread'
 require_relative 'xframes'
 
+# $events_subject = Rx::ReplaySubject.new()
+
 class WidgetRegistrationService
   def initialize
     @id_generator_lock = Mutex.new
     @id_widget_registration_lock = Mutex.new
     @id_event_registration_lock = Mutex.new
 
-    @events_subject = Rx::ReplaySubject.new(10)
-    # @events_subject.debounce(0.001).subscribe { |fn| fn.call }
-
+    
+    # @events_subject = Rx::ReplaySubject.new()
+    # @events_subject.debounce(0.001).subscribe(Proc.new { |fn| fn.call })
+    # promise = Concurrent::Promise.execute do
+    #   $events_subject.subscribe do |cb| 
+    #   puts "yo"
+    #   cb()
+    #   end
+    # end
+    # promise.wait
+    
     @widget_registry = {}
     @on_click_registry = Rx::BehaviorSubject.new({})
 
@@ -56,12 +66,22 @@ class WidgetRegistrationService
   end
 
   def dispatch_on_click_event(widget_id)
-    on_click = @on_click_registry.value[widget_id]
-    if on_click
-      @events_subject.on_next(on_click)
-    else
-      puts "Widget with id #{widget_id} has no on_click handler"
+    promise = Concurrent::Promise.execute do
+      on_click = @on_click_registry.value[widget_id]
+
+      if on_click
+        # promise = Concurrent::Promise.execute do
+          on_click()
+          # $events_subject.on_next(on_click)
+        # end
+
+        
+      else
+        puts "Widget with id #{widget_id} has no on_click handler"
+      end
     end
+
+    promise.wait
   end
 
   def create_widget(widget)

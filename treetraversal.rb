@@ -53,18 +53,22 @@ class ShadowNodeTraversalHelper
       shadow_node.props_change_subscription.dispose
     end
 
-    return nil
+    promise = Concurrent::Promise.execute do
 
-    if shadow_node.renderable.is_a?(BaseComponent)
-      component = shadow_node.renderable
-      shadow_node.props_change_subscription = component.props.pipe(
-        Rx::Operators.skip(1)
-      ).subscribe { |new_props| handle_component_props_change(shadow_node, component, new_props) }
-    elsif shadow_node.renderable.is_a?(WidgetNode)
-      shadow_node.props_change_subscription = shadow_node.renderable.props.pipe(
-        Rx::Operators.skip(1)
-      ).subscribe { |new_props| handle_widget_node_props_change(shadow_node, shadow_node.renderable, new_props) }
+      if shadow_node.renderable.is_a?(BaseComponent)
+        component = shadow_node.renderable
+        shadow_node.props_change_subscription = component.props.pipe(
+          Rx::Operators.skip(1)
+        ).subscribe { |new_props| handle_component_props_change(shadow_node, component, new_props) }
+      elsif shadow_node.renderable.is_a?(WidgetNode)
+        shadow_node.props_change_subscription = shadow_node.renderable.props.pipe(
+          Rx::Operators.skip(1)
+        ).subscribe { |new_props| handle_widget_node_props_change(shadow_node, shadow_node.renderable, new_props) }
+      end
+
     end
+
+    promise.wait
   end
 
   def handle_widget_node(widget)

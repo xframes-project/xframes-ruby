@@ -25,16 +25,17 @@ end
 $sample_app_state = Rx::BehaviorSubject.new(AppState.new("", []))
 
 def on_click
-  new_todo_item = TodoItem.new("New Todo", false)
+  promise = Concurrent::Promise.execute do
+    new_todo_item = TodoItem.new("New Todo", false)
+    current_state = $sample_app_state.value
+    new_state = AppState.new(
+      current_state.todo_text,
+      current_state.todo_items + [new_todo_item]
+    )
+    $sample_app_state.on_next(new_state)
+  end
 
-  current_state = $sample_app_state.value
-
-  new_state = AppState.new(
-    current_state.todo_text,
-    current_state.todo_items + [new_todo_item]
-  )
-
-  $sample_app_state.on_next(new_state)
+  promise.wait
 end
 
 $text_style = WidgetStyle.new(
@@ -62,18 +63,10 @@ class App < BaseComponent
   def initialize
     super({})
 
-    @sample_app_state = Rx::BehaviorSubject.new(AppState.new("", []))
-
-    @props.on_next({
-      "todo_text" => "",
-      "todo_items" => []
-    })
-
-    puts "App initialize called 3"
-
     promise = Concurrent::Promise.execute do
-      @sample_app_state.subscribe do |latest_app_state|
-        # Safe operation, as Async ensures execution is handled in the appropriate thread
+      $sample_app_state.subscribe do |latest_app_state|
+        puts "app state changed"
+
         @props.on_next({
           "todo_text" => latest_app_state.todo_text,
           "todo_items" => latest_app_state.todo_items
@@ -81,26 +74,27 @@ class App < BaseComponent
       end
     end
     
-    # Wait for the promise to complete before moving forward
     promise.wait
 
-    puts "App initialize called 4"
+    @props.on_next({
+      "todo_text" => "",
+      "todo_items" => [TodoItem.new("New Todo", false)]
+    })
   end
 
   def render
-    puts "App render called"
-    children = [button("Add todo", Proc.new {puts "suga"}, $button_style)]
-    # children = [button("Add todo")]
-    
-    puts "App render called 2"
-    
-    # props.value["todo_items"].each do |todo_item|
-      # text = "#{todo_item.text} (#{todo_item.done ? 'done' : 'to do'})."
-      # children << unformatted_text(text, $text_style)
-      # children << unformatted_text(text)
-    # end
+    children = [button("Add todo", Proc.new {
+      on_click()
+    }, $button_style)]
 
-    puts "App render called 3"
+    promise = Concurrent::Promise.execute do
+      @props.value["todo_items"].each do |todo_item|
+        text = "#{todo_item.text} (#{todo_item.done ? 'done' : 'to do'})."
+        children << unformatted_text(text, $text_style)
+      end
+    end
+
+    promise.wait
 
     node(children)
   end
